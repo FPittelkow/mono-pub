@@ -12,9 +12,10 @@ wheels/
 .venv
 
 ._posts/
+_posts
 _drafts
 _release
-
+_tmp
 configuartion.yaml
 
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm

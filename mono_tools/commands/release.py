@@ -42,6 +42,11 @@ def projects():
 def musics():
     music()
 
+@app.command()
+def all():
+    post()
+    project()
+    music()
 
 def release_content_type(content_type: str):
     config = load_config()
