@@ -18,29 +18,38 @@ DEFAULT_RELEASE_CONFIG = {
     "preserve_string_fields": ["title", "short_description"],
     "required_fields": {
         "common": ["title", "date", "author"],
-        "projects": ["archive_record", "short_description"],
+        "project": ["archive_record", "short_description"],
     },
+}
+
+PATH_KEYS_BY_TYPE = {
+    "post": "posts",
+    "project": "projects",
+    "music": "music",
 }
 
 @app.command()
 def post():
-    config = load_config()
-    release_files(
-        Path(config["drafts_path"]["posts"]),
-        Path(config["releases_path"]["posts"]),
-        Path(config["assets_path"]["posts"]),
-        release_config=get_release_config(config),
-    )
+    release_type("post")
 
 @app.command()
 def project():
+    release_type("project")
+
+@app.command()
+def music():
+    release_type("music")
+
+def release_type(content_type: str):
     config = load_config()
+    path_key = PATH_KEYS_BY_TYPE[content_type]
+
     release_files(
-        Path(config["drafts_path"]["projects"]),
-        Path(config["releases_path"]["projects"]),
-        Path(config["assets_path"]["projects"]),
+        Path(config["drafts_path"][path_key]),
+        Path(config["releases_path"][path_key]),
+        Path(config["assets_path"][path_key]),
         release_config=get_release_config(config),
-        project=True,
+        content_type=content_type,
     )
 
 @app.command()
@@ -50,6 +59,10 @@ def posts():
 @app.command()
 def projects():
     project()
+
+@app.command()
+def musics():
+    music()
 
 def get_release_config(config: dict) -> dict:
     release_config = DEFAULT_RELEASE_CONFIG | config.get("release", {})
@@ -73,7 +86,7 @@ def release_files(
     releases_dir: Path,
     assets_dir: Path,
     release_config: dict,
-    project: bool = False,
+    content_type: str,
 ):
     drafts = list(drafts_dir.glob("*.md"))
     marked = [path for path in drafts if is_marked_for_release(path)]
@@ -83,17 +96,22 @@ def release_files(
         return
 
     for path in marked:
-        release_draft(path, releases_dir, assets_dir, release_config, project=project)
+        release_draft(path, releases_dir, assets_dir, release_config, content_type)
 
 def is_marked_for_release(path: Path) -> bool:
     post = frontmatter.load(path)
     return post.metadata.get("release") is True
 
-def validate_draft(post: frontmatter.Post, path: Path, release_config: dict, project: bool = False) -> bool:
+def validate_draft(
+    post: frontmatter.Post,
+    path: Path,
+    release_config: dict,
+    content_type: str,
+) -> bool:
     required_fields = release_config["required_fields"]
     required = list(required_fields["common"])
-    if project:
-        required.extend(required_fields["projects"])
+    required.extend(required_fields.get(content_type, []))
+    required.extend(required_fields.get(PATH_KEYS_BY_TYPE.get(content_type, ""), []))
 
     missing = [key for key in required if not has_frontmatter_value(post, key)]
 
@@ -258,11 +276,11 @@ def release_draft(
     target_dir: Path,
     assets_dir: Path,
     release_config: dict,
-    project: bool = False,
+    content_type: str,
 ):
     post = frontmatter.load(path)
 
-    if not validate_draft(post, path, release_config, project=project):
+    if not validate_draft(post, path, release_config, content_type):
         raise typer.Exit(1)
 
     compiled = compile_draft(post, path, assets_dir, release_config)

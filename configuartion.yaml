@@ -5,14 +5,18 @@ templates_path: mono_tools/templates
 drafts_path:
   posts: ~/Development/mono_tools/_drafts/_posts
   projects: ~/Development/mono_tools/_drafts/_projects
+  music: ~/Development/mono_tools/_drafts/_projects/_music
+
 
 releases_path:
   posts: ~/Development/mono_tools/_release/_posts
   projects: ~/Development/mono_tools/_release/_projects
+  music: ~/Development/mono_tools/_release/_projects/_music
 
 assets_path:
   posts: ~/Development/mono_tools/_release/_posts/assets
   projects: ~/Development/mono_tools/_release/_projects/assets
+  music: ~/Development/mono_tools/_release/_projects/_music/assets
 
 release:
   build_fields:
@@ -31,6 +35,7 @@ release:
       - title
       - date
       - author
-    projects:
+    project:
       - archive_record
       - short_description
+    music: []

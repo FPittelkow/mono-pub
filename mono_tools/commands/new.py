@@ -19,7 +19,11 @@ def post(title: str):
 def project(title: str):
     create_project(title)
 
-def file_operation(title: str, path: Path, template: str):
+@app.command()
+def music(title: str):
+    create_music(title)
+
+def file_operation(title: str, path: Path, content_type: str):
     today = date.today()
     slug = slugify(title)
 
@@ -33,19 +37,30 @@ def file_operation(title: str, path: Path, template: str):
         raise typer.Exit(1)
 
     env = Environment(loader=FileSystemLoader(config["templates_path"]))
-    template = env.get_template(template)
+    template = env.get_template(f"{content_type}.md.j2")
+
+    template_context = {
+        "title": title,
+        "date": today.isoformat(),
+        "author": config["author"],
+        "type": content_type,
+    }
+
+    if content_type == "music":
+        template_context["permalink"] = slug
 
     content = template.render(
-        title=title,
-        date=today.isoformat(),
-        author=config["author"]
+        **template_context
     )
 
     target.write_text(content, encoding="utf-8")
     typer.echo(f"Created: {target}")
 
 def create_post(title: str):
-    file_operation(title, Path(config["drafts_path"]["posts"]), "post.md.j2")
+    file_operation(title, Path(config["drafts_path"]["posts"]), "post")
 
 def create_project(title: str):
-    file_operation(title, Path(config["drafts_path"]["projects"]), "project.md.j2")
+    file_operation(title, Path(config["drafts_path"]["projects"]), "project")
+
+def create_music(title: str):
+    file_operation(title, Path(config["drafts_path"]["music"]), "music")

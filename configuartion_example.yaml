@@ -5,14 +5,17 @@ templates_path: mono_tools/templates
 drafts_path:
   posts:
   projects:
+  music:
 
 releases_path:
   posts:
   projects:
+  music:
 
 assets_path:
   posts:
   projects:
+  music:
 
 release:
   build_fields:
@@ -31,6 +34,7 @@ release:
       - title
       - date
       - author
-    projects:
+    project:
       - archive_record
       - short_description
+    music: []
