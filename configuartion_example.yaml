@@ -13,3 +13,24 @@ releases_path:
 assets_path:
   posts:
   projects:
+
+release:
+  build_fields:
+    - release
+    - validate
+    - draft_only
+  frontmatter_image_fields:
+    - image_preview
+  category_fields:
+    - categories
+  preserve_string_fields:
+    - title
+    - short_description
+  required_fields:
+    common:
+      - title
+      - date
+      - author
+    projects:
+      - archive_record
+      - short_description

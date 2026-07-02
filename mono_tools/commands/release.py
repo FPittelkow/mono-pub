@@ -11,14 +11,15 @@ from mono_tools.config import load_config
 app = typer.Typer()
 
 IMAGE_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
-FRONTMATTER_IMAGE_FIELDS = {"image_preview"}
-CATEGORY_FIELDS = {"categories"}
-PRESERVE_STRING_FIELDS = {"title", "short_description", *FRONTMATTER_IMAGE_FIELDS}
-
-BUILD_FIELDS = {
-    "release",
-    "validate",
-    "draft_only",
+DEFAULT_RELEASE_CONFIG = {
+    "build_fields": ["release", "validate", "draft_only"],
+    "frontmatter_image_fields": ["image_preview"],
+    "category_fields": ["categories"],
+    "preserve_string_fields": ["title", "short_description"],
+    "required_fields": {
+        "common": ["title", "date", "author"],
+        "projects": ["archive_record", "short_description"],
+    },
 }
 
 @app.command()
@@ -28,6 +29,7 @@ def post():
         Path(config["drafts_path"]["posts"]),
         Path(config["releases_path"]["posts"]),
         Path(config["assets_path"]["posts"]),
+        release_config=get_release_config(config),
     )
 
 @app.command()
@@ -37,6 +39,8 @@ def project():
         Path(config["drafts_path"]["projects"]),
         Path(config["releases_path"]["projects"]),
         Path(config["assets_path"]["projects"]),
+        release_config=get_release_config(config),
+        project=True,
     )
 
 @app.command()
@@ -47,7 +51,30 @@ def posts():
 def projects():
     project()
 
-def release_files(drafts_dir: Path, releases_dir: Path, assets_dir: Path):
+def get_release_config(config: dict) -> dict:
+    release_config = DEFAULT_RELEASE_CONFIG | config.get("release", {})
+    required_fields = DEFAULT_RELEASE_CONFIG["required_fields"] | release_config.get("required_fields", {})
+    release_config["required_fields"] = required_fields
+    release_config["build_fields"] = normalize_field_names(release_config["build_fields"])
+    release_config["frontmatter_image_fields"] = normalize_field_names(
+        release_config["frontmatter_image_fields"]
+    )
+    release_config["category_fields"] = normalize_field_names(release_config["category_fields"])
+    release_config["preserve_string_fields"] = normalize_field_names(
+        release_config["preserve_string_fields"]
+    )
+    return release_config
+
+def normalize_field_names(fields: list[str]) -> list[str]:
+    return [field.lower() for field in fields]
+
+def release_files(
+    drafts_dir: Path,
+    releases_dir: Path,
+    assets_dir: Path,
+    release_config: dict,
+    project: bool = False,
+):
     drafts = list(drafts_dir.glob("*.md"))
     marked = [path for path in drafts if is_marked_for_release(path)]
 
@@ -56,15 +83,19 @@ def release_files(drafts_dir: Path, releases_dir: Path, assets_dir: Path):
         return
 
     for path in marked:
-        release_draft(path, releases_dir, assets_dir)
+        release_draft(path, releases_dir, assets_dir, release_config, project=project)
 
 def is_marked_for_release(path: Path) -> bool:
     post = frontmatter.load(path)
     return post.metadata.get("release") is True
 
-def validate_draft(post: frontmatter.Post, path: Path) -> bool:
-    required = ["title", "date", "author"]
-    missing = [key for key in required if key not in post.metadata]
+def validate_draft(post: frontmatter.Post, path: Path, release_config: dict, project: bool = False) -> bool:
+    required_fields = release_config["required_fields"]
+    required = list(required_fields["common"])
+    if project:
+        required.extend(required_fields["projects"])
+
+    missing = [key for key in required if not has_frontmatter_value(post, key)]
 
     if missing:
         typer.echo(f"Missing {missing}: {path}")
@@ -72,34 +103,55 @@ def validate_draft(post: frontmatter.Post, path: Path) -> bool:
 
     return True
 
-def remove_build_fields(post: frontmatter.Post):
-    for field in BUILD_FIELDS:
-        post.metadata.pop(field, None)
+def has_frontmatter_value(post: frontmatter.Post, key: str) -> bool:
+    if key not in post.metadata:
+        return False
 
-def normalize_frontmatter(post: frontmatter.Post):
+    value = post.metadata[key]
+    if value is None:
+        return False
+
+    if isinstance(value, str):
+        return bool(value.strip())
+
+    if isinstance(value, (list, dict)):
+        return bool(value)
+
+    return True
+
+def remove_build_fields(post: frontmatter.Post, release_config: dict):
+    build_fields = set(release_config["build_fields"])
+    for field in list(post.metadata):
+        if field.lower() in build_fields:
+            post.metadata.pop(field, None)
+
+def normalize_frontmatter(post: frontmatter.Post, release_config: dict):
     normalized = {}
 
     for key, value in post.metadata.items():
-        normalized[key.lower()] = normalize_frontmatter_value(key, value)
+        normalized[key.lower()] = normalize_frontmatter_value(key, value, release_config)
 
     post.metadata = normalized
 
-def normalize_frontmatter_value(key: str, value):
-    if key.lower() in PRESERVE_STRING_FIELDS:
+def normalize_frontmatter_value(key: str, value, release_config: dict):
+    preserve_string_fields = set(release_config["preserve_string_fields"])
+    preserve_string_fields.update(release_config["frontmatter_image_fields"])
+
+    if key.lower() in preserve_string_fields:
         return value
 
-    if key.lower() in CATEGORY_FIELDS:
+    if key.lower() in release_config["category_fields"]:
         return normalize_category_value(value)
 
     if isinstance(value, str):
         return value.lower()
 
     if isinstance(value, list):
-        return [normalize_frontmatter_value(key, item) for item in value]
+        return [normalize_frontmatter_value(key, item, release_config) for item in value]
 
     if isinstance(value, dict):
         return {
-            nested_key.lower(): normalize_frontmatter_value(nested_key, nested_value)
+            nested_key.lower(): normalize_frontmatter_value(nested_key, nested_value, release_config)
             for nested_key, nested_value in value.items()
         }
 
@@ -115,7 +167,12 @@ def normalize_category_value(value):
 
     return value
 
-def consolidate_images(post: frontmatter.Post, draft_path: Path, assets_dir: Path) -> dict[str, str]:
+def consolidate_images(
+    post: frontmatter.Post,
+    draft_path: Path,
+    assets_dir: Path,
+    release_config: dict,
+) -> dict[str, str]:
     slug = slugify(post.metadata["title"])
     target_dir = assets_dir / slug
     replacements = {}
@@ -125,7 +182,7 @@ def consolidate_images(post: frontmatter.Post, draft_path: Path, assets_dir: Pat
         if replacement is not None:
             replacements[image_path] = replacement
 
-    for field in FRONTMATTER_IMAGE_FIELDS:
+    for field in release_config["frontmatter_image_fields"]:
         image_path = post.metadata.get(field)
         if not isinstance(image_path, str):
             continue
@@ -184,20 +241,31 @@ def replace_image_path(post: frontmatter.Post, replacements: dict[str, str]):
 
     post.content = IMAGE_PATTERN.sub(replace, post.content)
 
-def compile_draft(post: frontmatter.Post, draft_path: Path, assets_dir: Path) -> frontmatter.Post:
-    remove_build_fields(post)
-    normalize_frontmatter(post)
-    replacements = consolidate_images(post, draft_path, assets_dir)
+def compile_draft(
+    post: frontmatter.Post,
+    draft_path: Path,
+    assets_dir: Path,
+    release_config: dict,
+) -> frontmatter.Post:
+    remove_build_fields(post, release_config)
+    normalize_frontmatter(post, release_config)
+    replacements = consolidate_images(post, draft_path, assets_dir, release_config)
     replace_image_path(post, replacements)
     return post
 
-def release_draft(path: Path, target_dir: Path, assets_dir: Path):
+def release_draft(
+    path: Path,
+    target_dir: Path,
+    assets_dir: Path,
+    release_config: dict,
+    project: bool = False,
+):
     post = frontmatter.load(path)
 
-    if not validate_draft(post, path):
+    if not validate_draft(post, path, release_config, project=project):
         raise typer.Exit(1)
 
-    compiled = compile_draft(post, path, assets_dir)
+    compiled = compile_draft(post, path, assets_dir, release_config)
 
     target_dir.mkdir(parents=True, exist_ok=True)
     target = target_dir / path.name
