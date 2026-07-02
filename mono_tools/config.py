@@ -2,7 +2,15 @@ from pathlib import Path
 import yaml
 
 PATH_KEYS = ("templates_path",)
-PATH_GROUP_KEYS = ("drafts_path", "release_path", "releases_path", "assets_path")
+PATH_GROUP_KEYS = (
+    "drafts_path",
+    "release_path",
+    "releases_path",
+    "assets_path",
+    "publish_base",
+    "publish_path",
+    "publish_assets_path",
+)
 
 
 def _resolve_path(path: str, base_dir: Path) -> str:

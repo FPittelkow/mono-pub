@@ -15,7 +15,7 @@ wheels/
 _posts
 _drafts
 _release
-_tmp
+_tmp/
 configuartion.yaml
 
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm
@@ -134,3 +134,4 @@ fabric.properties
 # https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
 .idea/**/azureSettings.xml
 .idea
+_temp

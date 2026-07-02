@@ -17,6 +17,21 @@ assets_path:
   projects:
   music:
 
+publish_base:
+  posts:
+  projects:
+  music:
+
+publish_path:
+  posts:
+  projects:
+  music:
+
+publish_assets_path:
+  posts:
+  projects:
+  music:
+
 release:
   build_fields:
     - release
