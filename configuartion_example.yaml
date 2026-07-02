@@ -32,6 +32,11 @@ publish_assets_path:
   projects:
   music:
 
+dry_run_port:
+  posts: 4001
+  projects: 4002
+  music: 4003
+
 release:
   build_fields:
     - release
