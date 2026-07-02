@@ -1,5 +1,9 @@
+import os
 from pathlib import Path
 import yaml
+
+DEFAULT_CONFIG_PATH = "/Users/fwa/Deploy/configuartion.yaml"
+CONFIG_ENV_VAR = "MONO_PUB_CONFIG"
 
 PATH_KEYS = ("templates_path",)
 PATH_GROUP_KEYS = (
@@ -32,8 +36,8 @@ def _resolve_config_paths(config: dict, base_dir: Path) -> dict:
 
     return config
 
-# Update the path to your configuration-file
-def load_config(path: str = "/Users/fwa/Deploy/configuartion.yaml"):
+def load_config(path: str | None = None):
+    path = path or os.environ.get(CONFIG_ENV_VAR, DEFAULT_CONFIG_PATH)
     config_path = Path(path).expanduser().resolve()
 
     if not config_path.exists():
