@@ -1,7 +1,7 @@
 import typer
 
-from mono_tools.config import load_config
-from mono_tools.process.publish import (
+from mono_pub.config import load_config
+from mono_pub.process.publish import (
     DirtyPublishRepositoryError,
     GitCommandError,
     GitRepositoryError,

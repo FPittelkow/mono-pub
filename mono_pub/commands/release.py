@@ -2,9 +2,9 @@ from pathlib import Path
 
 import typer
 
-from mono_tools.config import load_config
-from mono_tools.process.assets import MissingImageError
-from mono_tools.process.release import (
+from mono_pub.config import load_config
+from mono_pub.process.assets import MissingImageError
+from mono_pub.process.release import (
     ExistingReleaseError,
     MissingRequiredFieldsError,
     release_type,

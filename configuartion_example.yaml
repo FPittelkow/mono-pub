@@ -1,6 +1,6 @@
 author: monointerferenz
 
-templates_path: mono_tools/templates
+templates_path: mono_pub/templates
 
 drafts_path:
   posts:

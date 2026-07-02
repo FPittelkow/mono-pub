@@ -117,7 +117,7 @@ wheels = [
 ]
 
 [[package]]
-name = "mono-tools"
+name = "mono-pub"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

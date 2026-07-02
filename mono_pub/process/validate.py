@@ -1,6 +1,6 @@
 import frontmatter
 
-from mono_tools.process.release_config import PATH_KEYS_BY_TYPE
+from mono_pub.process.release_config import PATH_KEYS_BY_TYPE
 
 
 def missing_required_fields(

@@ -6,7 +6,7 @@ from pathlib import Path
 from slugify import slugify
 from jinja2 import Environment, FileSystemLoader
 
-from mono_tools.config import load_config
+from mono_pub.config import load_config
 config = load_config()
 
 app = typer.Typer()

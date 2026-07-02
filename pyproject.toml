@@ -1,5 +1,5 @@
 [project]
-name = "mono-tools"
+name = "mono-pub"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -11,3 +11,6 @@ dependencies = [
     "pyyaml>=6.0.3",
     "typer>=0.26.8",
 ]
+
+[project.scripts]
+mono-pub = "mono_pub.main:app"

@@ -6,7 +6,7 @@ import subprocess
 
 import frontmatter
 
-from mono_tools.process.release_config import path_key_for
+from mono_pub.process.release_config import path_key_for
 
 ASSET_PATH_PATTERN = re.compile(r"assets/([^/\s\"')]+)")
 

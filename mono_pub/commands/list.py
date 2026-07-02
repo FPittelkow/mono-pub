@@ -2,8 +2,8 @@ from pathlib import Path
 
 import typer
 
-from mono_tools.config import load_config
-from mono_tools.process.release_config import PATH_KEYS_BY_TYPE
+from mono_pub.config import load_config
+from mono_pub.process.release_config import PATH_KEYS_BY_TYPE
 
 app = typer.Typer()
 draft_app = typer.Typer()

@@ -2,9 +2,9 @@ from pathlib import Path
 
 import frontmatter
 
-from mono_tools.process.compile import compile_draft
-from mono_tools.process.release_config import get_release_config, path_key_for
-from mono_tools.process.validate import missing_required_fields
+from mono_pub.process.compile import compile_draft
+from mono_pub.process.release_config import get_release_config, path_key_for
+from mono_pub.process.validate import missing_required_fields
 
 
 class ReleaseError(Exception):

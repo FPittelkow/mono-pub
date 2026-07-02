@@ -2,7 +2,7 @@ from pathlib import Path
 
 import frontmatter
 
-from mono_tools.process.assets import consolidate_images, replace_image_path
+from mono_pub.process.assets import consolidate_images, replace_image_path
 
 
 def compile_draft(
