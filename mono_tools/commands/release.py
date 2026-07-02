@@ -12,6 +12,7 @@ app = typer.Typer()
 
 IMAGE_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
 FRONTMATTER_IMAGE_FIELDS = {"image_preview"}
+CATEGORY_FIELDS = {"categories"}
 PRESERVE_STRING_FIELDS = {"title", "short_description", *FRONTMATTER_IMAGE_FIELDS}
 
 BUILD_FIELDS = {
@@ -87,6 +88,9 @@ def normalize_frontmatter_value(key: str, value):
     if key.lower() in PRESERVE_STRING_FIELDS:
         return value
 
+    if key.lower() in CATEGORY_FIELDS:
+        return normalize_category_value(value)
+
     if isinstance(value, str):
         return value.lower()
 
@@ -98,6 +102,16 @@ def normalize_frontmatter_value(key: str, value):
             nested_key.lower(): normalize_frontmatter_value(nested_key, nested_value)
             for nested_key, nested_value in value.items()
         }
+
+    return value
+
+def normalize_category_value(value):
+    if isinstance(value, str):
+        value = value.strip().lower()
+        return value[:1].upper() + value[1:]
+
+    if isinstance(value, list):
+        return [normalize_category_value(item) for item in value]
 
     return value
 
