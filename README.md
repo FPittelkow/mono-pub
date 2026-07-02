@@ -1,5 +1,5 @@
 # mono_tools
-mono_tools is a system to automate publishing and archiving at monointerferenz.
+mono_tools is a system for publishing and archiving at monointerferenz.
 
 ## Create/sync the virtual environment:
 
