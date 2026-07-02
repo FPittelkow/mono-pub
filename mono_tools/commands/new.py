@@ -48,4 +48,4 @@ def create_post(title: str):
     file_operation(title, Path(config["drafts_path"]["posts"]), "post.md.j2")
 
 def create_project(title: str):
-    file_operation(title, Path(config["drafts_path"]["project"]), "project.md.j2")
+    file_operation(title, Path(config["drafts_path"]["projects"]), "project.md.j2")

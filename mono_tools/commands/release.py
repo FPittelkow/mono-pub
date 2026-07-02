@@ -1,9 +1,18 @@
 from pathlib import Path
+import re
+import shutil
+
 import frontmatter
 import typer
+from slugify import slugify
+
 from mono_tools.config import load_config
 
 app = typer.Typer()
+
+IMAGE_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+FRONTMATTER_IMAGE_FIELDS = {"image_preview"}
+PRESERVE_STRING_FIELDS = {"title", "short_description", *FRONTMATTER_IMAGE_FIELDS}
 
 BUILD_FIELDS = {
     "release",
@@ -14,12 +23,20 @@ BUILD_FIELDS = {
 @app.command()
 def post():
     config = load_config()
-    release_files(Path(config["drafts_path"]["posts"]), Path(config["releases_path"]["posts"]))
+    release_files(
+        Path(config["drafts_path"]["posts"]),
+        Path(config["releases_path"]["posts"]),
+        Path(config["assets_path"]["posts"]),
+    )
 
 @app.command()
 def project():
     config = load_config()
-    release_files(Path(config["drafts_path"]["projects"]), Path(config["releases_path"]["projects"]))
+    release_files(
+        Path(config["drafts_path"]["projects"]),
+        Path(config["releases_path"]["projects"]),
+        Path(config["assets_path"]["projects"]),
+    )
 
 @app.command()
 def posts():
@@ -29,7 +46,7 @@ def posts():
 def projects():
     project()
 
-def release_files(drafts_dir: Path, releases_dir: Path):
+def release_files(drafts_dir: Path, releases_dir: Path, assets_dir: Path):
     drafts = list(drafts_dir.glob("*.md"))
     marked = [path for path in drafts if is_marked_for_release(path)]
 
@@ -38,7 +55,7 @@ def release_files(drafts_dir: Path, releases_dir: Path):
         return
 
     for path in marked:
-        release_draft(path, releases_dir)
+        release_draft(path, releases_dir, assets_dir)
 
 def is_marked_for_release(path: Path) -> bool:
     post = frontmatter.load(path)
@@ -59,32 +76,114 @@ def remove_build_fields(post: frontmatter.Post):
         post.metadata.pop(field, None)
 
 def normalize_frontmatter(post: frontmatter.Post):
-    #Convert the frontmatter to lowercase except the title
-    pass
+    normalized = {}
 
-def consolidate_images():
-    # move the linked images from the drafts folder to a subfolder named with the slug in the assets_path for post or projects respectively.
-    pass
+    for key, value in post.metadata.items():
+        normalized[key.lower()] = normalize_frontmatter_value(key, value)
 
-def replace_image_path():
-    #replace the standard Markdown image path ( ![]() ) with the new path from consolidate_mages()
-    #with {% picture default image_path] alt="" %}
-    pass
+    post.metadata = normalized
 
-def compile_draft(post: frontmatter.Post) -> frontmatter.Post:
+def normalize_frontmatter_value(key: str, value):
+    if key.lower() in PRESERVE_STRING_FIELDS:
+        return value
+
+    if isinstance(value, str):
+        return value.lower()
+
+    if isinstance(value, list):
+        return [normalize_frontmatter_value(key, item) for item in value]
+
+    if isinstance(value, dict):
+        return {
+            nested_key.lower(): normalize_frontmatter_value(nested_key, nested_value)
+            for nested_key, nested_value in value.items()
+        }
+
+    return value
+
+def consolidate_images(post: frontmatter.Post, draft_path: Path, assets_dir: Path) -> dict[str, str]:
+    slug = slugify(post.metadata["title"])
+    target_dir = assets_dir / slug
+    replacements = {}
+
+    for _, image_path in IMAGE_PATTERN.findall(post.content):
+        replacement = consolidate_image(image_path, draft_path, target_dir, slug)
+        if replacement is not None:
+            replacements[image_path] = replacement
+
+    for field in FRONTMATTER_IMAGE_FIELDS:
+        image_path = post.metadata.get(field)
+        if not isinstance(image_path, str):
+            continue
+
+        replacement = consolidate_image(image_path, draft_path, target_dir, slug)
+        if replacement is not None:
+            post.metadata[field] = replacement
+
+    return replacements
+
+def consolidate_image(image_path: str, draft_path: Path, target_dir: Path, slug: str) -> str | None:
+    source_path = resolve_image_path(image_path, draft_path)
+    if source_path is None:
+        return None
+
+    if not source_path.exists():
+        typer.echo(f"Image not found: {source_path}")
+        raise typer.Exit(1)
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / source_path.name
+    shutil.copy2(source_path, target)
+    return f"assets/{slug}/{target.name}"
+
+def resolve_image_path(image_path: str, draft_path: Path) -> Path | None:
+    if not image_path.strip():
+        return None
+
+    if is_external_or_site_path(image_path):
+        return None
+
+    path = Path(image_path)
+    if path.is_absolute():
+        return path
+
+    return draft_path.parent / path
+
+def is_external_or_site_path(image_path: str) -> bool:
+    return (
+        image_path.startswith("/")
+        or image_path.startswith("#")
+        or "://" in image_path
+        or image_path.startswith("mailto:")
+    )
+
+def replace_image_path(post: frontmatter.Post, replacements: dict[str, str]):
+    def replace(match: re.Match) -> str:
+        alt = match.group(1)
+        image_path = match.group(2)
+        replacement = replacements.get(image_path)
+
+        if replacement is None:
+            return match.group(0)
+
+        return f'{{% picture default {replacement} alt="{alt}" %}}'
+
+    post.content = IMAGE_PATTERN.sub(replace, post.content)
+
+def compile_draft(post: frontmatter.Post, draft_path: Path, assets_dir: Path) -> frontmatter.Post:
     remove_build_fields(post)
     normalize_frontmatter(post)
-    consolidate_images()
-    replace_image_path()
+    replacements = consolidate_images(post, draft_path, assets_dir)
+    replace_image_path(post, replacements)
     return post
 
-def release_draft(path: Path, target_dir: Path):
+def release_draft(path: Path, target_dir: Path, assets_dir: Path):
     post = frontmatter.load(path)
 
     if not validate_draft(post, path):
         raise typer.Exit(1)
 
-    compiled = compile_draft(post)
+    compiled = compile_draft(post, path, assets_dir)
 
     target_dir.mkdir(parents=True, exist_ok=True)
     target = target_dir / path.name
