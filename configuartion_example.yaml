@@ -1,0 +1,15 @@
+author: monointerferenz
+
+templates_path: mono_tools/templates
+
+drafts_path:
+  posts:
+  projects:
+
+releases_path:
+  posts:
+  projects:
+
+assets_path:
+  posts:
+  projects:

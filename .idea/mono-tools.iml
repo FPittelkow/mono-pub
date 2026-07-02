@@ -3,6 +3,8 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/_drafts" />
+      <excludeFolder url="file://$MODULE_DIR$/_release" />
     </content>
     <orderEntry type="jdk" jdkName="uv (mono_tools)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

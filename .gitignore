@@ -12,3 +12,7 @@ wheels/
 .venv
 
 ._posts/
+_drafts
+_release
+
+configuartion.yaml
