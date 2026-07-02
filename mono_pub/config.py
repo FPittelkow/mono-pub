@@ -32,8 +32,8 @@ def _resolve_config_paths(config: dict, base_dir: Path) -> dict:
 
     return config
 
-
-def load_config(path: str = "configuartion.yaml"):
+# Update the path to your configuration-file
+def load_config(path: str = "/Users/fwa/Deploy/configuartion.yaml"):
     config_path = Path(path).expanduser().resolve()
 
     if not config_path.exists():
