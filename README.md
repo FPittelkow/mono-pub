@@ -1,6 +1,6 @@
 # mono_pub
 mono_pub is a tool for publishing at monointerferenz.
-it offers a command line interface and a optional terminal based GUI.
+It offers a command line interface and a optional terminal based GUI.
 
 It prepares content to be published via Jekyll.
 
@@ -89,11 +89,11 @@ mono-pub new music “My first music”
 ``mono-pub open post`` opens the draft folder in the configured editor. (Projects ans music follow the same pattern)
 
 ## Release
-Drafts that are marked ``release: true`` in the frontmatter can be released. They will be verified and paths and links will be set for deployment. Also assists get copied to the assets folder respectively. Frontmatter will be stripped down.
+Drafts marked ``release: true`` in the frontmatter can be released. They will be verified and paths and links will be set for deployment. Assets get copied to the assets folder respectively. Frontmatter will be stripped down.
 
 ## Publish
 ``mono-pub publish all`` will be send all files to the server via git. It is also possible to publish only post, projects and music. Use ``mono-pub publish post`` etc.
 
 - ``--no-git`` can be used to skip git operations.
-- ``--git`` only runs git add and commit and push.
+- ``--git`` only runs git add / commit / push.
 - ``--dry-run`` can be used to simulate the publish process through a local Jekyll server.
