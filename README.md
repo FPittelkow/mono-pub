@@ -53,7 +53,7 @@ mono-pub --help
 mono-pub tui
 ```
 
-**Aktualisieren**
+**Update**
 
 After changes in the repository:
 
