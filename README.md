@@ -9,7 +9,7 @@ It prepares content to be published via Jekyll.
 ### Requirements
 
 * Python 3.13 or newer
-* uv installiert
+* uv installed
 
 Clone the repository
 
@@ -40,7 +40,7 @@ Example:
 uv run mono-pub new post "My first post"
 ```
 
-### Instal the CLI globally (optional)
+### Install the CLI globally (optional)
 
 ```bash
 uv tool install -e ".[tui]"
