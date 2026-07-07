@@ -2,6 +2,8 @@ author: monointerferenz
 
 templates_path: mono_pub/templates
 
+editor_command: code {path}
+
 drafts_path:
   posts:
   projects:
