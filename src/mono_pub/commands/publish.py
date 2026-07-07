@@ -10,7 +10,10 @@ from mono_pub.process.publish import (
     publish_type,
 )
 
-app = typer.Typer()
+app = typer.Typer(
+    help="Publish to Jekyll.",
+    no_args_is_help=True,
+)
 
 
 @app.command()

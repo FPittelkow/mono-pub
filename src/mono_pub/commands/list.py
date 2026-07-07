@@ -5,7 +5,12 @@ import typer
 from mono_pub.config import load_config
 from mono_pub.process.release_config import PATH_KEYS_BY_TYPE
 
-app = typer.Typer()
+app = typer.Typer(
+    help="List post drafts and releases.",
+    no_args_is_help=True,
+)
+
+
 draft_app = typer.Typer()
 release_app = typer.Typer()
 

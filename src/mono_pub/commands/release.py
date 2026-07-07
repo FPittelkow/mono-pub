@@ -10,7 +10,10 @@ from mono_pub.process.release import (
     release_type,
 )
 
-app = typer.Typer()
+app = typer.Typer(
+    help="Prepare files for release.",
+    no_args_is_help=True,
+)
 
 
 @app.command()

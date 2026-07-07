@@ -7,7 +7,10 @@ import typer
 from mono_pub.config import load_config
 from mono_pub.process.release_config import PATH_KEYS_BY_TYPE
 
-app = typer.Typer()
+app = typer.Typer(
+    help="Open draft post / project / music folder in the configured editor.",
+    no_args_is_help=True,
+)
 
 
 @app.command()

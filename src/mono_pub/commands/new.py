@@ -9,17 +9,26 @@ from jinja2 import Environment, FileSystemLoader
 from mono_pub.config import load_config
 config = load_config()
 
-app = typer.Typer()
+app = typer.Typer(
+    help="Create new draft post / project / music files.",
+    no_args_is_help=True,
+)
 
-@app.command()
+@app.command(
+    help="General all-purpose post."
+)
 def post(title: str):
     create_post(title)
 
-@app.command()
+@app.command(
+    help="General Art-Work",
+)
 def project(title: str):
     create_project(title)
 
-@app.command()
+@app.command(
+    help="Like Project, but explicitly for music.",
+)
 def music(title: str):
     create_music(title)
 
