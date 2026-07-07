@@ -12,5 +12,17 @@ dependencies = [
     "typer>=0.26.8",
 ]
 
+[project.optional-dependencies]
+tui = [
+    "textual>=6.6.0",
+]
+
 [project.scripts]
 mono-pub = "mono_pub.main:app"
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["uv_build>=0.8.0,<0.9.0"]
+build-backend = "uv_build"
