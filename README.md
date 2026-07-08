@@ -1,5 +1,5 @@
-# mono_pub
-mono_pub is a tool for publishing at monointerferenz.
+# mono-pub
+mono-pub is a tool for publishing at monointerferenz.
 It offers a command line interface and a optional terminal based GUI.
 
 It prepares content to be published via Jekyll.
