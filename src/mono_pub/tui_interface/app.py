@@ -7,7 +7,7 @@ from rich.markup import escape
 from rich.text import Text
 from slugify import slugify
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Footer, Header, Input, Label, RichLog, Select
 
 from mono_pub.commands.open import build_editor_command
@@ -63,10 +63,9 @@ class MonoPubTuiApp(App):
     }
 
     Button {
-        width: 100%;
+        width: 90%;
         margin-top: 1;
     }
-
     #status {
         height: 1fr;
     }
@@ -97,14 +96,14 @@ class MonoPubTuiApp(App):
                     yield Select(CONTENT_TYPES, value="post", id="content-type")
                     yield Input(placeholder="Draft title", id="draft-title")
                     yield Button("Create draft", id="create-draft", variant="primary")
-                with Vertical(classes="panel"):
+                with VerticalScroll(classes="panel"):
                     yield Label("Actions", classes="section-title")
                     yield Button("Open drafts", id="open")
                     yield Button("Release marked drafts", id="release")
-                    yield Button("Publish files only", id="publish-no-git")
                     yield Button("Publish and push", id="publish")
-                    yield Button("Dry run preview", id="dry-run")
                     yield Button("Refresh", id="refresh")
+                    yield Button("Publish No git", id="publish-no-git")
+                    yield Button("Dry run preview", id="dry-run")
             with Vertical(id="main"):
                 yield RichLog(id="overview", classes="panel", wrap=True, highlight=True)
                 yield RichLog(id="status", wrap=True, highlight=True)

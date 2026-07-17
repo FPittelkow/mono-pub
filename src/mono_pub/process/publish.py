@@ -128,8 +128,8 @@ def copy_release_files(files: list[Path], publish_dir: Path) -> list[Path]:
 
     for file in files:
         target = publish_dir / file.name
-        shutil.copy2(file, target)
-        published.append(target)
+        if copy_file_without_overwrite(file, target):
+            published.append(target)
 
     return published
 
@@ -148,10 +148,37 @@ def copy_referenced_assets(
             continue
 
         target = publish_assets_dir / slug
-        shutil.copytree(source, target, dirs_exist_ok=True)
-        published.append(target)
+        if copy_path_without_overwrite(source, target):
+            published.append(target)
 
     return published
+
+
+def copy_path_without_overwrite(source: Path, target: Path) -> bool:
+    if source.is_dir():
+        return copy_directory_without_overwrite(source, target)
+
+    return copy_file_without_overwrite(source, target)
+
+
+def copy_directory_without_overwrite(source: Path, target: Path) -> bool:
+    target.mkdir(parents=True, exist_ok=True)
+    copied = False
+
+    for child in source.iterdir():
+        child_target = target / child.name
+        copied = copy_path_without_overwrite(child, child_target) or copied
+
+    return copied
+
+
+def copy_file_without_overwrite(source: Path, target: Path) -> bool:
+    if target.exists():
+        return False
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, target)
+    return True
 
 
 def collect_asset_slugs(files: list[Path]) -> set[str]:
